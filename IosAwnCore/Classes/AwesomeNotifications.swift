@@ -38,6 +38,7 @@ public class AwesomeNotifications:
     public static var didFinishLaunch:Bool = false
     public static var removeFromEvents:Bool = false
     public static var completionHandlerGetInitialAction:((ActionReceived?) -> Void)? = nil
+    public static weak var remoteNotificationListener: AwesomeRemoteNotificationListener?
     
     // ************************** CONSTRUCTOR ***********************************
         
@@ -708,6 +709,17 @@ public class AwesomeNotifications:
                         detailedCode: ExceptionCode.DETAILED_UNEXPECTED_ERROR,
                         originalException: error)
             }
+        }
+    }
+    
+    @available(iOS 10.0, *)
+    public func application(_ application: UIApplication,
+                            didReceiveRemoteNotification userInfo: [AnyHashable : Any],
+                            fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        
+        Logger.shared.d(TAG, "Received remote notification (userInfo): \(userInfo)")
+        if let notificationListener = AwesomeNotifications.remoteNotificationListener {
+            notificationListener.handle(application, didReceiveRemoteNotification: userInfo, fetchCompletionHandler: completionHandler)
         }
     }
     
