@@ -38,6 +38,7 @@ public class AwesomeNotifications:
     public static var didFinishLaunch:Bool = false
     public static var removeFromEvents:Bool = false
     public static var completionHandlerGetInitialAction:((ActionReceived?) -> Void)? = nil
+    public static weak var willPresentInterceptor: WillPresentInterceptorDelegate?
     
     // ************************** CONSTRUCTOR ***********************************
         
@@ -616,6 +617,10 @@ public class AwesomeNotifications:
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ){
+        if let willPresentInterceptor = AwesomeNotifications.willPresentInterceptor, willPresentInterceptor.handle(center, willPresent: notification, withCompletionHandler: completionHandler) {
+            return
+        }
+        
         let jsonData:[String : Any?] =
                 extractNotificationJsonMap(
                     fromContent: notification.request.content)
@@ -1067,4 +1072,12 @@ public class AwesomeNotifications:
             .shared
             .syncAllPendingSchedules(whenGotResults: completionHandler)
     }
+}
+
+public protocol WillPresentInterceptorDelegate: AnyObject {
+    func handle(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) -> Bool
 }
